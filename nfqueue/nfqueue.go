@@ -20,7 +20,7 @@ package nfqueue
 #include <linux/netfilter.h>
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
-extern int GoCallbackWrapper(void *data, void *nfad, void *packet_hw);
+extern int GoCallbackWrapper(void *data, void *nfad, void *packet_hw, int packet_hw_len);
 static inline ssize_t recv_to(int sockfd, void *buf, size_t len, int flags, int to);
 
 int _process_loop(struct nfq_handle *h,
@@ -92,23 +92,27 @@ static inline ssize_t recv_to(int sockfd, void *buf, size_t len, int flags, int 
     return 0;
 }
 
-static char* _c_nfq_get_packet_hw(struct nfq_data *nfad) {
+static void _c_nfq_get_packet_hw(struct nfq_data *nfad, char **packet_hw, int *packet_hw_len) {
     struct nfqnl_msg_packet_hw *hwph = nfq_get_packet_hw(nfad);
-    char *res = calloc(8 * sizeof(char), sizeof(char));
-    if (res == NULL) {
-        return NULL;
+    *packet_hw = malloc(hwph->hw_addrlen * sizeof(char));
+    if (*packet_hw == NULL) {
+        *packet_hw_len = 0;
+        return;
     }
     uint16_t i;
     for (i = 0; i < hwph->hw_addrlen; i++) {
-        res[i] = hwph->hw_addr[i];
+        *packet_hw[i] = hwph->hw_addr[i];
     }
-    return res;
+    *packet_hw_len = hwph->hw_addrlen;
 }
 
 int c_nfq_cb(struct nfq_q_handle *qh,
              struct nfgenmsg *nfmsg,
              struct nfq_data *nfad, void *data) {
-    return GoCallbackWrapper(data, nfad, _c_nfq_get_packet_hw(nfad));
+    char *packet_hw;
+    int packet_hw_len;
+    _c_nfq_get_packet_hw(nfad, &packet_hw, &packet_hw_len);
+    return GoCallbackWrapper(data, nfad, packet_hw, packet_hw_len);
 }
 
 // wrap nfq_get_payload so cgo always have the same prototype
