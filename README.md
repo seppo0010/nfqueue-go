@@ -1,9 +1,6 @@
 # nfqueue-go
 
 
-[![Build Status](https://travis-ci.org/chifflier/nfqueue-go.svg?branch=master)](https://travis-ci.org/chifflier/nfqueue-go)
-[![GoDoc](https://godoc.org/github.com/chifflier/nfqueue-go?status.svg)](https://godoc.org/github.com/chifflier/nfqueue-go/nfqueue)
-
 nfqueue-go is a wrapper library for
 [libnetfilter-queue](http://www.netfilter.org/projects/libnetfilter_queue/). The goal is to provide a library to gain access to packets queued by the kernel packet filter.
 
@@ -21,7 +18,7 @@ To use the library, a program must
 ## Using library
 
 ```
-import "github.com/chifflier/nfqueue-go/nfqueue"
+import "github.com/seppo0010/nfqueue-go/nfqueue"
 ```
 
 ## Example
