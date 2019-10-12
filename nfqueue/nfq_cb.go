@@ -5,6 +5,7 @@ import (
 	"unsafe"
 )
 
+// #include <stdlib.h>
 import "C"
 
 /*
@@ -27,9 +28,9 @@ verdict. This works, and avoids packets without verdict to be queued, but
 prevents using out-of-order replies.
 */
 //export GoCallbackWrapper
-func GoCallbackWrapper(ptr_q, ptr_nfad, ptr_packet_hw *unsafe.Pointer, packet_hw_len C.int) int {
-	q := (*Queue)(unsafe.Pointer(ptr_q))
-	packet_hw := C.GoBytes(unsafe.Pointer(ptr_packet_hw), packet_hw_len)
+func GoCallbackWrapper(ptr_q, ptr_nfad, ptr_packet_hw unsafe.Pointer, packet_hw_len C.int) int {
+	q := (*Queue)(ptr_q)
+	packet_hw := C.GoBytes(ptr_packet_hw, packet_hw_len)
 	payload := build_payload(q.c_qh, ptr_nfad)
 	return q.cb(q, payload, net.HardwareAddr(packet_hw))
 }

@@ -92,27 +92,11 @@ static inline ssize_t recv_to(int sockfd, void *buf, size_t len, int flags, int 
     return 0;
 }
 
-static void _c_nfq_get_packet_hw(struct nfq_data *nfad, char **packet_hw, int *packet_hw_len) {
-    struct nfqnl_msg_packet_hw *hwph = nfq_get_packet_hw(nfad);
-    *packet_hw = malloc(hwph->hw_addrlen * sizeof(char));
-    if (*packet_hw == NULL) {
-        *packet_hw_len = 0;
-        return;
-    }
-    uint16_t i;
-    for (i = 0; i < hwph->hw_addrlen; i++) {
-        *packet_hw[i] = hwph->hw_addr[i];
-    }
-    *packet_hw_len = hwph->hw_addrlen;
-}
-
 int c_nfq_cb(struct nfq_q_handle *qh,
              struct nfgenmsg *nfmsg,
              struct nfq_data *nfad, void *data) {
-    char *packet_hw;
-    int packet_hw_len;
-    _c_nfq_get_packet_hw(nfad, &packet_hw, &packet_hw_len);
-    return GoCallbackWrapper(data, nfad, packet_hw, packet_hw_len);
+    struct nfqnl_msg_packet_hw *hwph = nfq_get_packet_hw(nfad);
+    return GoCallbackWrapper(data, nfad, hwph->hw_addr, hwph->hw_addrlen);
 }
 
 // wrap nfq_get_payload so cgo always have the same prototype
@@ -325,7 +309,7 @@ type Payload struct {
 	Data []byte
 }
 
-func build_payload(c_qh *C.struct_nfq_q_handle, ptr_nfad *unsafe.Pointer) *Payload {
+func build_payload(c_qh *C.struct_nfq_q_handle, ptr_nfad unsafe.Pointer) *Payload {
 	var payload_data *C.uchar
 	var data []byte
 
