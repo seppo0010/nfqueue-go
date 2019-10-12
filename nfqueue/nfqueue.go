@@ -96,7 +96,8 @@ int c_nfq_cb(struct nfq_q_handle *qh,
              struct nfgenmsg *nfmsg,
              struct nfq_data *nfad, void *data) {
     struct nfqnl_msg_packet_hw *hwph = nfq_get_packet_hw(nfad);
-    return GoCallbackWrapper(data, nfad, hwph->hw_addr, (int)hwph->hw_addrlen);
+    int hlen = ntohs(hwph->hw_addrlen);
+    return GoCallbackWrapper(data, nfad, hwph->hw_addr, hlen);
 }
 
 // wrap nfq_get_payload so cgo always have the same prototype
